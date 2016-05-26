@@ -8,6 +8,8 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
+// Based on: http://www.codersblock.org/blog//2014/06/integrating-monocecil-with-unity.html
+
 [InitializeOnLoad]
 public static class AssemblyPostProcessor {
     static AssemblyPostProcessor() {
