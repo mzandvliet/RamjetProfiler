@@ -55,7 +55,7 @@ public static class RamjetProfiler {
             for (int i = 0; i < depth; i++) {
                 b.Append("-");
             }
-            b.AppendFormat(" {0}: {1:0:00}ms, {2} calls\n", e.Id, e.AverageSeconds * 1000d, e.TimesCalled);
+            b.AppendFormat(" {0}: {1:0.00}ms, {2} calls\n", e.Id, e.AverageSeconds * 1000d, e.TimesCalled);
         }
         if (e.HasChildren()) {
             for (int i = 0; i < e.Children.Count; i++) {
@@ -83,7 +83,10 @@ public static class RamjetProfiler {
     }
 }
 
-/* Todo: 
+/* 
+ * Node for a tree representing callstack with profiling data per method
+ * 
+ * Todo: 
  * 
  * Needs to be easily serializable
  * 

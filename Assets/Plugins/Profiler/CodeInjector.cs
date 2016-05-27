@@ -10,6 +10,10 @@ using UnityEngine;
 
 // Based on: http://www.codersblock.org/blog//2014/06/integrating-monocecil-with-unity.html
 
+/* Todo:
+ * Recursion bug - reboot editor, first time playing no results, seconds time proper results, 3rd time double results, 4th time triple results
+ */
+
 [InitializeOnLoad]
 public static class AssemblyPostProcessor {
     static AssemblyPostProcessor() {
@@ -84,11 +88,10 @@ public static class AssemblyPostProcessor {
                 AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyPath, readerParameters);
 
                 // Process it if it hasn't already
-                Debug.Log("Processing " + Path.GetFileName(assemblyPath));
+                Debug.Log("Processing " + Path.GetFileName(assemblyPath) + "...");
                 ProcessAssembly(assemblyDefinition);
-                Debug.Log("Writing to " + assemblyPath);
+                Debug.Log("Writing to " + assemblyPath + "...");
                 assemblyDefinition.Write(assemblyPath, writerParameters);
-                Debug.Log("Done writing");
             }
 
             // Unlock now that we're done
@@ -98,23 +101,40 @@ public static class AssemblyPostProcessor {
         }
     }
 
-    private static void ProcessAssembly(AssemblyDefinition assemblyDefinition) {
-        foreach (ModuleDefinition moduleDefinition in assemblyDefinition.Modules) {
-            foreach (TypeDefinition typeDefinition in moduleDefinition.Types) {
-                foreach (MethodDefinition methodDefinition in typeDefinition.Methods) {
-                    MethodReference beginMethod = moduleDefinition.Import(typeof(RamjetProfiler).GetMethod("BeginSample", BindingFlags.Static | BindingFlags.Public));
-                    MethodReference endMethod = moduleDefinition.Import(typeof(RamjetProfiler).GetMethod("EndSample", BindingFlags.Static | BindingFlags.Public));
+    private static void ProcessAssembly(AssemblyDefinition assembly) {
+        foreach (ModuleDefinition module in assembly.Modules) {
+            MethodReference attributeConstructor = module.Import(
+                typeof(RamjetProfilerPostProcessedAssemblyAttribute).GetConstructor(Type.EmptyTypes));
+            var attribute = new CustomAttribute(attributeConstructor);
+            if (module.HasCustomAttributes && !module.CustomAttributes.Contains(attribute)) {
+                Debug.Log("Skipping already-patched module: " + module.Name);
+                continue;
+            }
 
-                    ILProcessor ilProcessor = methodDefinition.Body.GetILProcessor();
+            module.CustomAttributes.Add(attribute);
+            
+            foreach (TypeDefinition type in module.Types) {
+                foreach (MethodDefinition method in type.Methods) {
+                    MethodReference beginMethod = module.Import(typeof(RamjetProfiler).GetMethod("BeginSample", BindingFlags.Static | BindingFlags.Public));
+                    MethodReference endMethod = module.Import(typeof(RamjetProfiler).GetMethod("EndSample", BindingFlags.Static | BindingFlags.Public));
 
-                    Instruction first = methodDefinition.Body.Instructions[0];
-                    ilProcessor.InsertBefore(first, Instruction.Create(OpCodes.Ldstr, typeDefinition.FullName + "." + methodDefinition.Name));
+                    ILProcessor ilProcessor = method.Body.GetILProcessor();
+
+                    Instruction first = method.Body.Instructions[0];
+                    ilProcessor.InsertBefore(first, Instruction.Create(OpCodes.Ldstr, type.FullName + "." + method.Name));
                     ilProcessor.InsertBefore(first, Instruction.Create(OpCodes.Call, beginMethod));
 
-                    Instruction last = methodDefinition.Body.Instructions[methodDefinition.Body.Instructions.Count - 1];
+                    Instruction last = method.Body.Instructions[method.Body.Instructions.Count - 1];
                     ilProcessor.InsertBefore(last, Instruction.Create(OpCodes.Call, endMethod));
                 }
-            }
+            }  
         }
     }
+}
+
+/// <summary>
+/// Used to mark modules in assemblies as already patched.
+/// </summary>
+[AttributeUsage(AttributeTargets.Module)]
+public class RamjetProfilerPostProcessedAssemblyAttribute: Attribute {
 }

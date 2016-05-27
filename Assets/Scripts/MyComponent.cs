@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEngine;
-using System.Collections;
+﻿using UnityEngine;
 using System.Threading;
 
 public class MyComponent : MonoBehaviour {
@@ -10,10 +8,17 @@ public class MyComponent : MonoBehaviour {
     }
 
     private void MyNestedFunctionA() {
-        Thread.Sleep(6);
+        Thread.Sleep(5);
     }
 
     private void MyNestedFunctionB() {
-        Thread.Sleep(10);
+        Thread.Sleep(4);
+        for (int i = 0; i < 5; i++) {
+            MyNestedFunctionC();
+        }
+    }
+
+    private void MyNestedFunctionC() {
+        Thread.Sleep(1);
     }
 }
