@@ -10,10 +10,6 @@ using UnityEngine;
 
 // Based on: http://www.codersblock.org/blog//2014/06/integrating-monocecil-with-unity.html
 
-/* Todo:
- * Recursion bug - reboot editor, first time playing no results, seconds time proper results, 3rd time double results, 4th time triple results
- */
-
 [InitializeOnLoad]
 public static class AssemblyPostProcessor {
     static AssemblyPostProcessor() {
