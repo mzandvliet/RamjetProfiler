@@ -1,20 +1,19 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections;
+using System.Threading;
 
 public class MyComponent : MonoBehaviour {
     private void Update() {
-        int j = 0;
-        for (int i = 0; i < 1000000; i++) {
-            j++;
-        }
-        MyNestedFunction();
+        MyNestedFunctionA();
+        MyNestedFunctionB();
     }
 
-    private void MyNestedFunction() {
-        int j = 0;
-        for (int i = 0; i < 2000000; i++) {
-            j++;
-        }
+    private void MyNestedFunctionA() {
+        Thread.Sleep(6);
+    }
+
+    private void MyNestedFunctionB() {
+        Thread.Sleep(10);
     }
 }

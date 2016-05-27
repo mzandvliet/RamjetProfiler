@@ -98,9 +98,7 @@ public static class AssemblyPostProcessor {
         }
     }
 
-    private static bool ProcessAssembly(AssemblyDefinition assemblyDefinition) {
-        bool wasProcessed = false;
-
+    private static void ProcessAssembly(AssemblyDefinition assemblyDefinition) {
         foreach (ModuleDefinition moduleDefinition in assemblyDefinition.Modules) {
             foreach (TypeDefinition typeDefinition in moduleDefinition.Types) {
                 foreach (MethodDefinition methodDefinition in typeDefinition.Methods) {
@@ -114,12 +112,9 @@ public static class AssemblyPostProcessor {
                     ilProcessor.InsertBefore(first, Instruction.Create(OpCodes.Call, beginMethod));
 
                     Instruction last = methodDefinition.Body.Instructions[methodDefinition.Body.Instructions.Count - 1];
-                    //ilProcessor.InsertBefore(last, Instruction.Create(OpCodes.Ldstr, "Exit " + typeDefinition.FullName + "." + methodDefinition.Name));
                     ilProcessor.InsertBefore(last, Instruction.Create(OpCodes.Call, endMethod));
                 }
             }
         }
-
-        return wasProcessed;
     }
 }
